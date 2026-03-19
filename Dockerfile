@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.26.1-alpine AS builder
 
 WORKDIR /app
 
@@ -7,12 +7,13 @@ RUN go mod download
 
 COPY . .
 
-
-RUN go build -o forma ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o forma ./cmd/main.go
 
 FROM alpine:latest
 
 WORKDIR /app
+
+RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/forma .
 
