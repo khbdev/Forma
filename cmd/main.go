@@ -37,6 +37,7 @@ func main() {
 
 	// public
 	r.POST("/leads", leadHandler.Create)
+	r.POST("/admin/login", handler.AdminLogin)
 
 	// protected
 	admin := r.Group("/")
