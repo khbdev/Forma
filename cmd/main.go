@@ -49,7 +49,7 @@ func main() {
 	}
 
 
-	log.Println("server ishga tushdi: :8080")
+	log.Println("server ishga tushdi: :8081")
 	if err := r.Run(os.Getenv("PORT")); err != nil {
 		log.Fatal("server run xatosi: ", err)
 	}
