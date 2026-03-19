@@ -1,6 +1,7 @@
 package main
 
 import (
+	"forma/internal/cache"
 	"forma/internal/config"
 	repository "forma/internal/repostory"
 	"forma/internal/service"
@@ -24,13 +25,16 @@ func main(){
 		log.Fatal("Error: ", err)
 	}
 
+
 	
-	_ = redis
+
+
+	cache := cache.NewLeadCache(redis)
 
    repos := repository.NewLeadRepository(postgres)
 
    srv := service.NewLeadService(repos)
 
-   
+
 
 }
