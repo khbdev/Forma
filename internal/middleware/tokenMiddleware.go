@@ -5,32 +5,44 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AdminAuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
+func AdminAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			http.Error(w, "authorization header is required", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "authorization header is required",
+			})
+			c.Abort()
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" || strings.TrimSpace(parts[1]) == "" {
-			http.Error(w, "invalid authorization header format", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "invalid authorization header format",
+			})
+			c.Abort()
 			return
 		}
 
 		tokenString := parts[1]
 		secret := os.Getenv("JWT_SECRET")
 		if secret == "" {
-			http.Error(w, "jwt secret is not configured", http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "jwt secret is not configured",
+			})
+			c.Abort()
 			return
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// faqat HMAC algoritmga ruxsat beramiz
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrTokenSignatureInvalid
 			}
@@ -38,10 +50,14 @@ func AdminAuthMiddleware(next http.Handler) http.Handler {
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "invalid or expired token", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "invalid or expired token",
+			})
+			c.Abort()
 			return
 		}
 
-		next.ServeHTTP(w, r)
-	})
+		c.Next()
+	}
 }
